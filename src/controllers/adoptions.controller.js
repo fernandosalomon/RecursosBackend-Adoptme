@@ -7,12 +7,16 @@ import {
 const getAllAdoptions = async (req, res) => {
   try {
     const result = await adoptionsService.getAll();
-    res.send({ status: "success", payload: result });
+    res.send({
+      status: "success",
+      message: "Adoptions recovered",
+      payload: result,
+    });
   } catch (error) {
     res.status(500).send({
       status: "error",
       message: `Internal Server Error: ${error}`,
-      payload: [],
+      payload: null,
     });
   }
 };
@@ -24,13 +28,17 @@ const getAdoption = async (req, res) => {
     if (!adoption)
       return res
         .status(404)
-        .send({ status: "error", error: "Adoption not found" });
+        .send({
+          status: "error",
+          message: "Adoption not found",
+          payload: null,
+        });
     res.send({ status: "success", payload: adoption });
   } catch (error) {
     res.status(500).send({
       status: "error",
       message: `Internal Server Error: ${error}`,
-      payload: [],
+      payload: null,
     });
   }
 };
@@ -42,17 +50,17 @@ const createAdoption = async (req, res) => {
     if (!user)
       return res
         .status(404)
-        .send({ status: "error", message: "User not found", payload: [] });
+        .send({ status: "error", message: "User not found", payload: null });
     const pet = await petsService.getBy({ _id: pid });
     if (!pet)
       return res
         .status(404)
-        .send({ status: "error", message: "Pet not found", payload: [] });
+        .send({ status: "error", message: "Pet not found", payload: null });
     if (pet.adopted)
       return res.status(400).send({
         status: "error",
         message: "Pet is already adopted",
-        payload: [],
+        payload: null,
       });
     user.pets.push(pet._id);
     await usersService.update(user._id, { pets: user.pets });
@@ -70,7 +78,7 @@ const createAdoption = async (req, res) => {
     res.status(500).send({
       status: "error",
       message: `Internal Server Error: ${error}`,
-      payload: [],
+      payload: null,
     });
   }
 };
