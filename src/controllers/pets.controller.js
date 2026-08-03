@@ -31,7 +31,7 @@ const createPet = async (req, res) => {
     res.send({
       status: "success",
       message: "Pet added",
-      payload: result._id,
+      payload: result,
     });
   } catch (error) {
     res.status(500).send({

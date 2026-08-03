@@ -9,7 +9,7 @@ export const validateMongoId = (listOfParams) => {
         return res.status(400).send({
           status: "error",
           message: `Invalid id: ${paramName}`,
-          payload: [],
+          payload: null,
         });
       }
     });

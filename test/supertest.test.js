@@ -92,7 +92,7 @@ describe("Test adoption.router.js", () => {
 
     it("Debe devolver array vacío si todavía no hay adopciones", async () => {
       const { body } = await requester.get("/api/adoptions");
-      expect(body.payload.length).to.equal(0);
+      expect(body.payload.length).to.be.eql(0);
     });
   });
 
@@ -104,9 +104,9 @@ describe("Test adoption.router.js", () => {
         `/api/adoptions/${fakeId}`,
       );
 
-      expect(statusCode).to.equal(404);
-      expect(body.status).to.equal("error");
-      expect(body.error).to.equal("Adoption not found");
+      expect(statusCode).to.be.eql(404);
+      expect(body.status).to.be.eql("error");
+      expect(body.message).to.be.eql("Adoption not found");
     });
 
     it("Debe devolver 200 y la adopción cuando el id existe", async () => {
