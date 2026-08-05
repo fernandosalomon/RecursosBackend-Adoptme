@@ -1,0 +1,195 @@
+paths:
+  /adoptions:
+    get:
+      tags: [Adoptions]
+      summary: Obtener todas las adopciones
+      responses:
+        "200":
+          description: Listado de adopciones
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      payload:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Adoption"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /adoptions/{aid}:
+    parameters:
+      - $ref: "#/components/parameters/AdoptionId"
+    get:
+      tags: [Adoptions]
+      summary: Obtener una adopción por ID
+      responses:
+        "200":
+          description: Adopción encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  payload:
+                    $ref: "#/components/schemas/Adoption"
+        "400":
+          description: El id no tiene formato válido de ObjectId
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "404":
+          description: Adopción no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+              example:
+                status: error
+                message: Adoption not found
+                payload: null
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /adoptions/{uid}/{pid}:
+    post:
+      tags: [Adoptions]
+      summary: Crear una adopción (adoptar una mascota)
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/PetId"
+      responses:
+        "201":
+          description: Adopción creada exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      payload:
+                        type: string
+                        description: ID de la adopción creada
+              example:
+                status: success
+                message: Pet adopted
+                payload: 64f1b2c3d4e5f6a7b8c9d0e3
+        "400":
+          description: Formato de id inválido, o la mascota ya está adoptada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+              example:
+                status: error
+                message: Pet is already adopted
+                payload: null
+        "404":
+          description: Usuario o mascota no encontrados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+              examples:
+                userNotFound:
+                  summary: Usuario no encontrado
+                  value:
+                    status: error
+                    message: User not found
+                    payload: null
+                petNotFound:
+                  summary: Mascota no encontrada
+                  value:
+                    status: error
+                    message: Pet not found
+                    payload: null
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Operation completed successfully
+        payload:
+          type: object
+      required:
+        - status
+        - message
+    ApiErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Error message
+        payload:
+          type: object
+          nullable: true
+          example: null
+      required:
+        - status
+        - message
+    Adoption:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64f1b2c3d4e5f6a7b8c9d0e3
+        owner:
+          type: string
+          description: ID del usuario adoptante
+          example: 64f1b2c3d4e5f6a7b8c9d0e1
+        pet:
+          type: string
+          description: ID de la mascota adoptada
+          example: 64f1b2c3d4e5f6a7b8c9d0e2
+  parameters:
+    AdoptionId:
+      name: aid
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ID de adopción en formato ObjectId
+    UserId:
+      name: uid
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ID de usuario en formato ObjectId
+    PetId:
+      name: pid
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ID de mascota en formato ObjectId
+  responses:
+    InternalServerError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            status: error
+            message: Internal server error
+            payload: null

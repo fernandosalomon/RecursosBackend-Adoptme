@@ -1,0 +1,215 @@
+paths:
+  /users:
+    get:
+      tags: [Users]
+      summary: Obtener todos los usuarios
+      responses:
+        "200":
+          description: Listado de usuarios
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      payload:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/User"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /users/{uid}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [Users]
+      summary: Obtener un usuario por ID
+      responses:
+        "200":
+          description: Usuario encontrado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      payload:
+                        $ref: "#/components/schemas/User"
+        "404":
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+              example:
+                status: error
+                message: User not found
+                payload: null
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      tags: [Users]
+      summary: Actualizar un usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateInput"
+      responses:
+        "200":
+          description: Usuario actualizado. El payload contiene el ID del usuario actualizado.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      payload:
+                        type: string
+                        description: ID del usuario actualizado
+              example:
+                status: success
+                message: User updated
+                payload: 64f1b2c3d4e5f6a7b8c9d0e1
+        "404":
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+              example:
+                status: error
+                message: User not found
+                payload: null
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags: [Users]
+      summary: Eliminar un usuario
+      responses:
+        "200":
+          description: Usuario eliminado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      payload:
+                        $ref: "#/components/schemas/User"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Operation completed successfully
+        payload:
+          type: object
+      required:
+        - status
+        - message
+    ApiErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Error message
+        payload:
+          type: object
+          nullable: true
+          example: null
+      required:
+        - status
+        - message
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64f1b2c3d4e5f6a7b8c9d0e1
+        first_name:
+          type: string
+          example: Juan
+        last_name:
+          type: string
+          example: Pérez
+        email:
+          type: string
+          format: email
+          example: juan.perez@example.com
+        password:
+          type: string
+          description: Contraseña hasheada con bcrypt
+          example: $2b$10$examplehashvalue...
+        role:
+          type: string
+          default: user
+          example: user
+        pets:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                example: 64f1b2c3d4e5f6a7b8c9d0e2
+      required:
+        - first_name
+        - last_name
+        - email
+        - password
+    UserUpdateInput:
+      type: object
+      properties:
+        first_name:
+          type: string
+          example: Juan
+        last_name:
+          type: string
+          example: Pérez
+        email:
+          type: string
+          format: email
+          example: juan.perez@example.com
+        password:
+          type: string
+          example: newpassword123
+        role:
+          type: string
+          example: user
+  parameters:
+    UserId:
+      name: uid
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ID de usuario en formato ObjectId
+  responses:
+    InternalServerError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            status: error
+            message: Internal server error
+            payload: null

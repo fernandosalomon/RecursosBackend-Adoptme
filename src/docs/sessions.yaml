@@ -1,0 +1,355 @@
+paths:
+  /sessions/register:
+    post:
+      tags: [Sessions]
+      summary: Registrar un nuevo usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "200":
+          description: Usuario registrado. El payload contiene el ID del usuario creado.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      payload:
+                        type: string
+                        description: ID del usuario registrado
+              example:
+                status: success
+                message: User registered
+                payload: 64f1b2c3d4e5f6a7b8c9d0e1
+        "400":
+          description: Faltan campos obligatorios, o el usuario ya existe
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+              examples:
+                incompleteValues:
+                  summary: Campos incompletos
+                  value:
+                    status: error
+                    message: Incomplete values
+                    payload: null
+                userExists:
+                  summary: Usuario ya existente
+                  value:
+                    status: error
+                    message: User already exists
+                    payload: null
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /sessions/login:
+    post:
+      tags: [Sessions]
+      summary: Iniciar sesión
+      description: >
+        Valida las credenciales y, si son correctas, firma un JWT con los
+        datos básicos del usuario y lo setea en la cookie `coderCookie`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login exitoso. El token JWT se envía en la cookie `coderCookie`.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: coderCookie=<jwt>; Max-Age=3600000
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                status: success
+                message: Logged in
+        "400":
+          description: Faltan campos obligatorios, o la contraseña es incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+              examples:
+                incompleteValues:
+                  summary: Campos incompletos
+                  value:
+                    status: error
+                    message: Incomplete values
+                    payload: null
+                wrongCredentials:
+                  summary: Contraseña incorrecta
+                  value:
+                    status: error
+                    message: Wrong credentials
+                    payload: null
+        "404":
+          description: No existe un usuario con ese email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+              example:
+                status: error
+                message: Wrong credentials
+                payload: null
+
+  /sessions/current:
+    get:
+      tags: [Sessions]
+      summary: Obtener el usuario autenticado actual
+      description: Decodifica el JWT enviado en la cookie `coderCookie`.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Datos del usuario autenticado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      payload:
+                        $ref: "#/components/schemas/UserTokenPayload"
+              example:
+                status: success
+                message: User logged successfully
+                payload:
+                  name: Juan Pérez
+                  role: user
+                  email: juan.perez@example.com
+
+  /sessions/unprotectedLogin:
+    get:
+      tags: [Sessions]
+      summary: Login alternativo (sin DTO de usuario)
+      description: >
+        Variante de login que firma el documento completo del usuario en el
+        JWT (incluye el hash de la contraseña), sin aplicar el DTO de
+        protección de datos sensibles. Se expone únicamente con fines
+        didácticos/comparativos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login exitoso. El token JWT se envía en la cookie `unprotectedCookie`.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: unprotectedCookie=<jwt>; Max-Age=3600000
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      payload:
+                        type: string
+                        description: ID del usuario
+              example:
+                status: success
+                message: Unprotected Logged in
+                payload: 64f1b2c3d4e5f6a7b8c9d0e1
+        "400":
+          description: Faltan campos obligatorios, o la contraseña es incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "404":
+          description: No existe un usuario con ese email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+
+  /sessions/unprotectedCurrent:
+    get:
+      tags: [Sessions]
+      summary: Obtener el usuario actual (variante sin protección)
+      description: Decodifica el JWT enviado en la cookie `unprotectedCookie`.
+      security:
+        - unprotectedCookieAuth: []
+      responses:
+        "200":
+          description: Datos completos del usuario autenticado (documento de Mongo firmado en el token)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      payload:
+                        $ref: "#/components/schemas/User"
+              example:
+                status: success
+                message: User data retrieved
+                payload:
+                  _id: 64f1b2c3d4e5f6a7b8c9d0e1
+                  first_name: Juan
+                  last_name: Pérez
+                  email: juan.perez@example.com
+                  role: user
+                  pets: []
+
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Operation completed successfully
+        payload:
+          type: object
+      required:
+        - status
+        - message
+    ApiErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Error message
+        payload:
+          type: object
+          nullable: true
+          example: null
+      required:
+        - status
+        - message
+    RegisterInput:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - email
+        - password
+      properties:
+        first_name:
+          type: string
+          example: Juan
+        last_name:
+          type: string
+          example: Pérez
+        email:
+          type: string
+          format: email
+          example: juan.perez@example.com
+        password:
+          type: string
+          example: password123
+    LoginInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: juan.perez@example.com
+        password:
+          type: string
+          example: password123
+    UserTokenPayload:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Juan Pérez
+        role:
+          type: string
+          example: user
+        email:
+          type: string
+          format: email
+          example: juan.perez@example.com
+      required:
+        - name
+        - role
+        - email
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64f1b2c3d4e5f6a7b8c9d0e1
+        first_name:
+          type: string
+          example: Juan
+        last_name:
+          type: string
+          example: Pérez
+        email:
+          type: string
+          format: email
+          example: juan.perez@example.com
+        password:
+          type: string
+          description: Contraseña hasheada con bcrypt
+          example: $2b$10$examplehashvalue...
+        role:
+          type: string
+          default: user
+          example: user
+        pets:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                example: 64f1b2c3d4e5f6a7b8c9d0e2
+      required:
+        - first_name
+        - last_name
+        - email
+        - password
+  responses:
+    InternalServerError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            status: error
+            message: Internal server error
+            payload: null
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: coderCookie
+    unprotectedCookieAuth:
+      type: apiKey
+      in: cookie
+      name: unprotectedCookie
