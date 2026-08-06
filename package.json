@@ -1,7 +1,7 @@
 {
-  "name": "plantilladocumentacion",
+  "name": "AdoptMe",
   "version": "1.0.0",
-  "description": "",
+  "description": "AdoptMe API-Rest para el proyecto final de Backend III de CoderHouse",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -10,7 +10,7 @@
     "test": "mocha test/supertest.test.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Fernando F. Salomón",
   "license": "ISC",
   "dependencies": {
     "@faker-js/faker": "^10.5.0",
