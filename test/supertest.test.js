@@ -8,7 +8,6 @@ import { faker } from "@faker-js/faker";
 
 const requester = supertest(app);
 
-// AJUSTAR si tu conexión a Mongo se hace en otro lugar / con otra variable de entorno
 const MONGO_URL_TEST =
   process.env.MONGO_URL_TEST || "mongodb://localhost:27017/adoptme_test";
 
@@ -18,7 +17,6 @@ describe("Test adoption.router.js", () => {
   let adoptionId;
 
   before(async () => {
-    // Conexión a una DB de test dedicada, para no ensuciar la de desarrollo.
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(MONGO_URL_TEST);
     }
@@ -110,7 +108,6 @@ describe("Test adoption.router.js", () => {
     });
 
     it("Debe devolver 200 y la adopción cuando el id existe", async () => {
-      // Se crea la adopción primero a través del propio endpoint POST
       let response;
       response = await requester.post(`/api/adoptions/${userId}/${petId}`);
 
