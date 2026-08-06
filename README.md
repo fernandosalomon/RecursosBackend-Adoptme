@@ -162,6 +162,7 @@ El proyecto incluye tests de integración escritos con Mocha, Chai y Supertest:
 ```bash
 npm test
 ```
+
 Ejemplo de la ejecución de los test:
 ![Ejemplo_tests](public/img/tests_results.png)
 
@@ -171,41 +172,41 @@ La imagen del proyecto está publicada en Docker Hub: [fernandofsalomon/adoptme-
 
 ### Descargar la imagen
 
-\`\`\`bash
+```bash
 docker pull fernandofsalomon/adoptme-image
-\`\`\`
+```
 
 ### Variables de entorno
 
 El contenedor necesita las mismas variables que el proyecto en local. Podés usar el archivo `.env.docker` incluido en el repositorio:
 
-\`\`\`env
+```env
 PORT=8080
 MONGO_URI=<tu_cadena_de_conexión_de_mongodb>
 MONGO_URI_TEST=<tu_cadena_de_conexión_de_mongodb_para_testing>
-\`\`\`
+```
 
 Requiere que `MONGO_URL` y `MONGO_URL_TEST` apunte a una base de Mongo accesible desde el contenedor.
 
 ### Ejecutar el contenedor
 
-\`\`\`bash
+```bash
 docker run -d \\
 --env-file .env.docker \\
 -p 8080:8080 \\
 fernandofsalomon/adoptme-image
-\`\`\`
+```
 
 Verificá que quedó levantada:
 
-\`\`\`bash
+```bash
 docker logs -f adoptme-backend
-\`\`\`
+```
 
 La API queda disponible en `http://localhost:8080/api/...` y la documentación Swagger en `http://localhost:8080/api-docs`.
 
 ### Correr los tests dentro del contenedor
 
-\`\`\`bash
+```bash
 docker exec -it adoptme-backend npm test
-\`\`\`
+```
